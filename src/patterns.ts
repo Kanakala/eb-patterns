@@ -16,19 +16,6 @@ export const testEventPattern = ({ Event: event, EventPattern: eventPattern }: {
   return Object.keys(eventPatternJson).every((key) => matchPatternKey(eventJson, eventPatternJson, key))
 }
 
-/*
- Helper function to access nested properties of an object using a string path.
- {
-   "contact.first_name": ["John"]
- }
- is same as
-  {
-    "contact": {
-      "first_name": ["John"]
-    }
-  }
- */
-
 // Matches a single key from the pattern against the data.
 const matchPatternKey = (data: Data, pattern: Pattern, key: string): boolean => {
   // Handle the special '$or' operator by checking if any of the patterns match.
