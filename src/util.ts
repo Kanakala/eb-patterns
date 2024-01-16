@@ -24,6 +24,27 @@ const getValueByPath = (obj: Record<string, any>, path: string) => {
   return path.split('.').reduce((o, k) => (o || {})[k], obj)
 }
 
+const getValueByWildcardPath = (obj: Record<string, any>, path: string): any[] => {
+  const pathParts = path.split('.')
+  let currentValues = [obj]
+
+  for (const part of pathParts) {
+    const nextValues = []
+    for (const value of currentValues) {
+      if (part === '*') {
+        nextValues.push(...(value ? Object.values(value) : []))
+      } else if (value && typeof value === 'object') {
+        nextValues.push(value[part])
+      }
+    }
+    currentValues = nextValues
+  }
+
+  const result = currentValues.filter(val => val || val === null)
+
+  return result
+}
+
 // Function to handle numeric comparisons.
 const handleNumericComparison = (dataValue: DataValue, conditions: Array<string | number>): boolean => {
   for (let i = 0; i < conditions.length; i += 2) {
@@ -98,6 +119,7 @@ const patternRequiredFields = ['detail']
 export {
   isComparison,
   getValueByPath,
+  getValueByWildcardPath,
   handleNumericComparison,
   handleWildcardComparison,
   eventRequiredFields,

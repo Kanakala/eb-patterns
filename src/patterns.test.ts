@@ -1,10 +1,10 @@
-import { Pattern } from './types';
+import { Pattern, Data } from './types';
 
 import { testEventPattern, testPattern } from './index';
 
 describe('simple-patterns', () => {
   describe('existence checks', () => {
-    const data = { first_name: 'John' };
+    const data: Data = { first_name: 'John', email: null };
 
     test('returns true when an existing key is checked for existence', () => {
       const pattern = { first_name: [{ exists: true }] };
@@ -23,6 +23,16 @@ describe('simple-patterns', () => {
 
     test('returns false when an existing key is checked for non-existence', () => {
       const pattern = { first_name: [{ exists: false }] };
+      expect(testPattern(data, pattern)).toBe(false);
+    });
+
+    test('returns true when an existing key is checked for existence and value is null', () => {
+      const pattern = { email: [{ exists: true }] };
+      expect(testPattern(data, pattern)).toBe(true);
+    });
+
+    test('returns false when an existing key is checked for non-existence and value is null', () => {
+      const pattern = { email: [{ exists: false }] };
       expect(testPattern(data, pattern)).toBe(false);
     });
   });
@@ -186,11 +196,11 @@ describe('simple-patterns', () => {
       expect(testPattern(data, pattern)).toBe(false);
     });
 
-    test('returns true when the field to check is absent in the data and the pattern is null', () => {
+    test('returns false when the field to check is absent in the data and the pattern is null', () => {
       const data = { first_name: 'John' };
       const pattern: Record<string, any> = { last_name: [null] };
 
-      expect(testPattern(data, pattern)).toBe(true);
+      expect(testPattern(data, pattern)).toBe(false);
     });
   });
 
@@ -233,6 +243,98 @@ describe('simple-patterns', () => {
       test('returns false for a non-matching value within a complex nested JSON structure', () => {
         const pattern = { entity: { contact: { first_name: ['Jane'] } } };
         expect(testPattern(data, pattern)).toBe(false);
+      });
+    });
+
+    describe('wildcard pattern matching on keys', () => {
+      const data = { 
+        details: {
+          diff: {
+            added: {
+              payment: { type: 'credit' },
+              person: { name: 'John' }
+            },
+            updated: {
+              payment: { type: 'debit' },
+            }
+          }
+        }
+      };
+
+      test('returns true if the field matches the data by wildcard', () => {
+        const pattern: Pattern = {
+          'details.diff.*.payment': [{ exists: true }]
+        }
+        expect(testPattern(data, pattern)).toBe(true);
+      });
+
+      test('returns false if the field not matches the data by wildcard', () => {
+        const pattern: Pattern = {
+          'details.diff.*.payments': [{ exists: true }]
+        }
+        expect(testPattern(data, pattern)).toBe(false);
+      });
+
+      test('returns true if the the field matches the data by wildcard', () => {
+        const data: Data = {
+          details: {
+            diff: {
+              updated: {
+                name: null
+              },
+              added: {
+                email: 's.k@n.com'
+              }
+            }
+          }
+        }
+        const pattern: Pattern = {
+          'details.diff.*.names': [{ exists: false }]
+        }
+        expect(testPattern(data, pattern)).toBe(true);
+      });
+
+      test('returns false if the the field not matches the data by wildcard', () => {
+        const data: Data = {
+          details: {
+            diff: {
+              updated: {
+                name: null
+              },
+              added: {
+                email: 's.k@n.com'
+              }
+            }
+          }
+        }
+        const pattern: Pattern = {
+          'details.diff.*.names': [{ exists: true }]
+        }
+        expect(testPattern(data, pattern)).toBe(false);
+      });
+
+      test('returns true if the one of the field matches the data by wildcard', () => {
+        const pattern: Pattern = {
+          'details': {
+            '$or': [
+              { 'diff.*.payments': [{ exists: true }] },
+              { 'diff.*.*.name': [{ exists: true }] }
+            ]
+          }
+        }
+        expect(testPattern(data, pattern)).toBe(true);
+      });
+
+      test('returns true if the one of the field matches the data by wildcard', () => {
+        const pattern: Pattern = {
+          'details': {
+            '$or': [
+              { 'diff.*.payments': [{ exists: true }] },
+              { 'diff.*.*.name': [{ 'equals-ignore-case' : 'JohN' }] }
+            ]
+          }
+        }
+        expect(testPattern(data, pattern)).toBe(true);
       });
     });
   });

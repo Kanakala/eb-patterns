@@ -1,5 +1,5 @@
 import { Comparison, PatternValue, Pattern, Data, DataValue } from './types'
-import { eventRequiredFields, getValueByPath, handleNumericComparison, handleWildcardComparison, isComparison, patternRequiredFields } from './util'
+import { eventRequiredFields, getValueByPath, getValueByWildcardPath, handleNumericComparison, handleWildcardComparison, isComparison, patternRequiredFields } from './util'
 
 // Core function to check if data matches the provided pattern.
 export const testPattern = (data: Data, pattern: Pattern): boolean =>
@@ -23,15 +23,26 @@ const matchPatternKey = (data: Data, pattern: Pattern, key: string): boolean => 
     return (pattern[key] as Pattern[]).some((pattern) => testPattern(data, pattern))
   } else {
     const patternValues: PatternValue = pattern[key] as PatternValue
-    const actualDataValue = getValueByPath(data, key)
 
-    // If the pattern value is an array, try to match any of the patterns.
-    if (Array.isArray(patternValues)) {
-      return patternValues.some((patternValue) => matchValue(actualDataValue, patternValue))
-    } else {
-      // If it's an object, we assume it's a nested pattern and match recursively.
-      return testPattern(actualDataValue as Data, patternValues)
+    if (key.includes('*')) {
+      const actualDataValues = getValueByWildcardPath(data, key)
+
+      if (!actualDataValues?.length) return matchValueWithPatternValues(patternValues, undefined)
+      return actualDataValues.some(actualDataValue => matchValueWithPatternValues(patternValues, actualDataValue))
     }
+
+    const actualDataValue = getValueByPath(data, key)
+    return matchValueWithPatternValues(patternValues, actualDataValue)
+  }
+}
+
+const matchValueWithPatternValues = (patternValues: PatternValue, actualDataValue: any) => {
+  // If the pattern value is an array, try to match any of the patterns.
+  if (Array.isArray(patternValues)) {
+    return patternValues.some((patternValue) => matchValue(actualDataValue, patternValue))
+  } else {
+    // If it's an object, we assume it's a nested pattern and match recursively.
+    return testPattern(actualDataValue as Data, patternValues)
   }
 }
 
@@ -44,7 +55,7 @@ const matchValue = (dataValue: DataValue, patternValue: Comparison | string | nu
     // Direct equality check for primitives and support for checking null values & arrays
     return (
       dataValue === patternValue ||
-      (patternValue === null && !dataValue) ||
+      // (patternValue === null && !dataValue) ||
       (Array.isArray(dataValue) && dataValue.some((o) => o === patternValue))
     )
   }
@@ -61,7 +72,7 @@ const handleComparison = (dataValue: DataValue, patternValue: Comparison): boole
   } else if ('numeric' in patternValue) {
     return handleNumericComparison(dataValue, patternValue.numeric)
   } else if ('exists' in patternValue) {
-    return patternValue.exists === (dataValue !== undefined && dataValue !== null)
+    return patternValue.exists === (dataValue !== undefined)
   } else if ('prefix' in patternValue) {
     return typeof dataValue === 'string' && dataValue.startsWith(patternValue.prefix)
   } else if ('suffix' in patternValue) {
