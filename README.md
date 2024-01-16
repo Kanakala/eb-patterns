@@ -65,13 +65,14 @@ Returns `true` if the event matches the pattern, `false` otherwise.
 | Equals                 | email is "j.doe@email.com"                          | `"email": [ "j.doe@email.com" ]`                         |
 | Equals (ignore case)   | first_name is "John"                                | `"first_name": [ { "equals-ignore-case": "john" } ]`     |
 | And                    | fist_name is "John" and last_name is "Doe"          | `"first_name": [ "John" ], "last_name": ["Doe"]`         |
-| Or                     | payment_type is "Invoice" or "SEPA"                 | `"payment_type": [ "invoice", "sepa"]`                    |
+| Or                     | payment_type is "Invoice" or "SEPA"                 | `"payment_type": [ "invoice", "sepa"]`                   |
 | Or (multiple fields)   | first_name is "John", or last_name is "Doe".        | `"$or": [ { "first_name": [ "John" ] }, { "last_name": [ "Doe" ] } ]` |
 | Not                    | status is anything but "cancelled"                  | `"status": [ { "anything-but": [ "cancelled" ] } ]`      |
 | Numeric (equals)       | price is 100                                        | `"price": [ { "numeric": [ "=", 100 ] } ]`               |
 | Numeric (range)        | price is more than 10, and less than or equal to 20 | `"price": [ { "numeric": [ ">", 10, "<=", 20 ] } ]`      |
-| Exists                 | product_name exists                                 | `"product_name": [ { "exists": true } ]`                  |
-| Does not exist         | product_name does not exist                         | `"product_name": [ { "exists": false } ]`                 |
-| Begins with            | product_name starts with PRO-                       | `"product_name": [ { "prefix": "PRO-" } ]`         |
+| Exists                 | product_name exists                                 | `"product_name": [ { "exists": true } ]`                 |
+| Does not exist         | product_name does not exist                         | `"product_name": [ { "exists": false } ]`                |
+| Begins with            | product_name starts with PRO-                       | `"product_name": [ { "prefix": "PRO-" } ]`               |
 | Ends with              | filename ends with a .png extension                 | `"filename": [ { "suffix": ".png" } ]`                   |
-| Wildcard               | search a string using a wildcard                    | `"email": [ { "wildcard": "*@doe.com" } ]`                   |
+| Wildcard               | search a string using a wildcard                    | `"email": [ { "wildcard": "*@doe.com" } ]`               |
+| Wildcard in key        | wildcard in the pattern key                         | `"person.*.key": [ { "exists": true } ]`                 |
