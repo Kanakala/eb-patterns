@@ -1,68 +1,102 @@
-import { Comparison, DataValue } from './types';
+import { Comparison, DataValue } from './types'
 
 // Check if the provided object conforms to one of the Comparison types.
 const isComparison = (obj: unknown): obj is Comparison => {
-  const propNames = ['equals-ignore-case', 'anything-but', 'numeric', 'exists', 'prefix', 'suffix', 'wildcard'];
+  const propNames = ['equals-ignore-case', 'anything-but', 'numeric', 'exists', 'prefix', 'suffix', 'wildcard']
 
-  return typeof obj === 'object' && propNames.some((prop) => Object.prototype.hasOwnProperty.call(obj, prop));
-};
+  return typeof obj === 'object' && propNames.some((prop) => Object.prototype.hasOwnProperty.call(obj, prop))
+}
+
+/*
+ Helper function to access nested properties of an object using a string path.
+ {
+   "contact.first_name": ["John"]
+ }
+ is same as
+  {
+    "contact": {
+      "first_name": ["John"]
+    }
+  }
+ */
 
 const getValueByPath = (obj: Record<string, any>, path: string) => {
-  return path.split('.').reduce((o, k) => (o || {})[k], obj);
-};
+  return path.split('.').reduce((o, k) => (o || {})[k], obj)
+}
+
+const getValueByWildcardPath = (obj: Record<string, any>, path: string): any[] => {
+  const pathParts = path.split('.')
+  let currentValues = [obj]
+
+  for (const part of pathParts) {
+    const nextValues = []
+    for (const value of currentValues) {
+      if (part === '*') {
+        nextValues.push(...(value ? Object.values(value) : []))
+      } else if (value && typeof value === 'object') {
+        nextValues.push(value[part])
+      }
+    }
+    currentValues = nextValues
+  }
+
+  const result = currentValues.filter(val => val || val === null)
+
+  return result
+}
 
 // Function to handle numeric comparisons.
 const handleNumericComparison = (dataValue: DataValue, conditions: Array<string | number>): boolean => {
   for (let i = 0; i < conditions.length; i += 2) {
-    const operator = conditions[i] as string;
-    const value = conditions[i + 1] as number;
+    const operator = conditions[i] as string
+    const value = conditions[i + 1] as number
     if (!checkNumericCondition(dataValue, operator, value)) {
-      return false;
+      return false
     }
   }
 
   // If all conditions are met, return true.
-  return true;
-};
+  return true
+}
 
 // Checks a numeric condition on the data value against the expected value with the operator.
 const checkNumericCondition = (dataValue: DataValue, operator: string, value: number): boolean => {
-  const numericVal = getNumericValue(dataValue);
+  const numericVal = getNumericValue(dataValue)
   // If we can't convert to a numeric value, return false as the condition can't be met.
-  if (numericVal === undefined) return false;
+  if (numericVal === undefined) return false
 
   // Compare the numeric value against the expected value using the provided operator.
   switch (operator) {
     case '=':
-      return numericVal === value;
+      return numericVal === value
     case '>':
-      return numericVal > value;
+      return numericVal > value
     case '<':
-      return numericVal < value;
+      return numericVal < value
     case '>=':
-      return numericVal >= value;
+      return numericVal >= value
     case '<=':
-      return numericVal <= value;
+      return numericVal <= value
     default:
-      return false; // If the operator is unknown, the condition fails.
+      return false // If the operator is unknown, the condition fails.
   }
-};
+}
 
 // Function to safely attempt converting a DataValue to a numeric value.
 const getNumericValue = (value: DataValue): number | undefined => {
   if (typeof value === 'number') {
-    return value; // If already a number, return it.
+    return value // If already a number, return it.
   } else if (typeof value === 'string') {
-    const parsed = Number(value);
+    const parsed = Number(value)
     // We return the parsed number only if it's a valid integer.
     if (!isNaN(parsed) && Number.isFinite(parsed)) {
-      return parsed;
+      return parsed
     }
   }
 
   // If not a number or cannot be parsed into one, return undefined.
-  return undefined;
-};
+  return undefined
+}
 
 const handleWildcardComparison = (dataValue: string, condition: string): boolean => {
   const toRegex = (str: string) =>
@@ -73,20 +107,21 @@ const handleWildcardComparison = (dataValue: string, condition: string): boolean
           .replace(/[\-\[\]\/\{\}\(\)\+\.\\\^\$\|]/g, '\\$&')
           .replace(/\*/g, '.*')
           .replace(/\?/g, '.') +
-        '$',
-    );
+        '$'
+    )
 
-  return toRegex(condition).test(dataValue);
-};
+  return toRegex(condition).test(dataValue)
+}
 
-const eventRequiredFields = ['id', 'detail-type', 'source', 'account', 'time', 'region', 'detail'];
-const patternRequiredFields = ['detail'];
+const eventRequiredFields = ['id', 'detail-type', 'source', 'account', 'time', 'region', 'detail']
+const patternRequiredFields = ['detail']
 
 export {
   isComparison,
   getValueByPath,
+  getValueByWildcardPath,
   handleNumericComparison,
   handleWildcardComparison,
   eventRequiredFields,
-  patternRequiredFields,
-};
+  patternRequiredFields
+}
