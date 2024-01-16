@@ -24,9 +24,12 @@ const matchPatternKey = (data: Data, pattern: Pattern, key: string): boolean => 
   } else {
     const patternValues: PatternValue = pattern[key] as PatternValue
 
+    // when the key contains a wildcard, then fetching all the original values
+    // and later matching if at least one of the value matches with the pattern
     if (key.includes('*')) {
       const actualDataValues = getValueByWildcardPath(data, key)
 
+      // if there is no original value, then comparing the pattern with undefined
       if (!actualDataValues?.length) return matchValueWithPatternValues(patternValues, undefined)
       return actualDataValues.some(actualDataValue => matchValueWithPatternValues(patternValues, actualDataValue))
     }
@@ -55,7 +58,6 @@ const matchValue = (dataValue: DataValue, patternValue: Comparison | string | nu
     // Direct equality check for primitives and support for checking null values & arrays
     return (
       dataValue === patternValue ||
-      // (patternValue === null && !dataValue) ||
       (Array.isArray(dataValue) && dataValue.some((o) => o === patternValue))
     )
   }
