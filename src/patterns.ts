@@ -50,7 +50,7 @@ const matchValueWithPatternValues = (patternValues: PatternValue, actualDataValu
 }
 
 // Validates a single value from data against the corresponding pattern value.
-const matchValue = (dataValue: DataValue, patternValue: Comparison | string | number | null): boolean => {
+const matchValue = (dataValue: DataValue, patternValue: Comparison | string | number | boolean | null): boolean => {
   if (patternValue && isComparison(patternValue)) {
     // Handle different comparison operations.
     return handleComparison(dataValue, patternValue)

@@ -172,6 +172,20 @@ describe('simple-patterns', () => {
         expect(testPattern(data, pattern)).toBe(true);
       });
     });
+
+    describe('exact-match boolean checks', () => {
+      const data = { isValid: true };
+
+      test('returns true if the field value is strictly equal to the pattern', () => {
+        const pattern = { isValid: [true] };
+        expect(testPattern(data, pattern)).toBe(true);
+      });
+
+      test('returns false if the field value is not strictly equal to the pattern', () => {
+        const pattern = { isValid: [false] };
+        expect(testPattern(data, pattern)).toBe(false);
+      });
+    });
   });
 
   describe('empty-type checks', () => {
@@ -481,3 +495,26 @@ describe('event-bridge-patterns', () => {
     expect(testEventPattern({ Event: JSON.stringify(event), EventPattern: JSON.stringify(pattern) })).toBe(false);
   });
 });
+
+// describe.only('asd', () => {
+//   test('returns true if the one of the field matches the data by wildcard', () => {
+//     const data: Data = {
+//       details: {
+//         diff: {
+//           updated: {
+//             name: null
+//           },
+//           added: {
+//             email: 's.k@n.com'
+//           }
+//         }
+//       }
+//     }
+//     const pattern: Pattern = {
+//       "details": {
+//         "diff.*.name": [{exists: true}] 
+//       }
+//     }
+//     expect(testPattern(data, pattern)).toBe(true);
+//   });
+// })

@@ -1,6 +1,6 @@
 {
   "name": "eb-patterns",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "JS library to test event bridge patterns synchronously",
   "author": "Sumanth Kanakala",
   "license": "MIT",
