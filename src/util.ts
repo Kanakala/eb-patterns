@@ -40,7 +40,7 @@ const getValueByWildcardPath = (obj: Record<string, any>, path: string): any[] =
     currentValues = nextValues
   }
 
-  const result = currentValues.filter(val => val || val === null)
+  const result = currentValues.filter(val => val || val !== undefined)
 
   return result
 }

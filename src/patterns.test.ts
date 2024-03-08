@@ -37,6 +37,32 @@ describe('simple-patterns', () => {
     });
   });
 
+  describe('boolean exist checks', () => {
+    const dataWithTrue = { isValid: true };
+
+    test('returns true if the field value has boolean value', () => {
+      const pattern = { isValid: [{ exists: true }] };
+      expect(testPattern(dataWithTrue, pattern)).toBe(true);
+    });
+
+    test('returns false if the field value does not have a value', () => {
+      const pattern = { isValidate: [{ exists: true }] };
+      expect(testPattern(dataWithTrue, pattern)).toBe(false);
+    });
+
+    const dataWithFalse = { isValid: { number: false } };
+
+    test('returns true if the field value has boolean value', () => {
+      const pattern = { '*.number': [{ exists: true }] };
+      expect(testPattern(dataWithFalse, pattern)).toBe(true);
+    });
+
+    test('returns false if the field value does not have a value', () => {
+      const pattern = { 'isValidate.number': [{ exists: true }] };
+      expect(testPattern(dataWithFalse, pattern)).toBe(false);
+    });
+  });
+
   describe('value checks', () => {
     describe('anything-but', () => {
       const data = { first_name: 'John' };
